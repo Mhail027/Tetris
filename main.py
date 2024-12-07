@@ -1,22 +1,14 @@
 import pygame
 import sys
 
-from constants import *
-from gui import draw_button
 from position import Position
 
-pygame.init()
+from engine import *
+from gui import *
 
-window = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Tetris")
+sprite_load('./assets/sprites/kid.png', 32, 32)
 
-font = pygame.font.Font(None, 36)
-draw_button(window, BUTTON_WIDTH, BUTTON_HEIGHT,
-            Position(100, 70), GRAY,
-            "Cooperative Mode", BLACK, font)
-draw_button(window, BUTTON_WIDTH, BUTTON_HEIGHT,
-            Position(100, 230),GRAY,
-            "Competitive Mode", BLACK, font)
+instance_create(Button(100, 100, 60, 60))
 
 while 1:
     for event in pygame.event.get():
@@ -24,6 +16,7 @@ while 1:
             pygame.quit()
             sys.exit()
 
+    engine.update()
     pygame.display.flip()
 
 
