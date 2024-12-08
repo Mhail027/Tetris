@@ -8,7 +8,8 @@ from gui import *
 
 sprite_load('./assets/sprites/kid.png', 32, 32)
 
-instance_create(Button(100, 100, 60, 60))
+button = instance_create_depth(100, 100, -1, Button)
+button.width = 120
 
 while 1:
     for event in pygame.event.get():

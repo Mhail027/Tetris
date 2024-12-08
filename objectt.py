@@ -7,7 +7,7 @@ class Object:
 	
 	sprite_name = ''
 
-	def __init__(self, x: float, y: float, depth: int = 0):
+	def __init__(self, x: float, y: float, depth: int):
 		self.x = x
 		self.y = y
 		self.depth = depth
