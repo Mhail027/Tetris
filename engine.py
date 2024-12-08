@@ -77,6 +77,16 @@ def sprite_load(sprite_path: str, origin_x: int = 0, origin_y: int = 0):
 	file = os.path.splitext(file_name)
 	sprites[file[0]] = Sprite(sprite_path, origin_x, origin_y)
 
+def sprite_load_all():
+	files = os.listdir('./assets/sprites')
+	for file in files:
+		file_name = os.path.basename(file)
+		file_split = os.path.splitext(file_name)
+		if file_split[1] == '.png':
+			sprite_load('./assets/sprites/' + file)
+
+sprite_load_all()
+
 def mouse_button_check(button):
 	if button in mouse_held:
 		return True
@@ -106,6 +116,10 @@ def keyboard_key_released(key):
 	if key in keyboard_released:
 		return True
 	return False
+
+def level_load(level):
+	instances.clear()
+	level()
 
 def instance_create(obj: Object):
 	for i in range(len(instances)):
@@ -319,3 +333,8 @@ def point_in_rectangle(x: float, y: float, x1: float, y1: float, x2: float, y2: 
 		return True
 	return False
 
+def sprite_get_texture(sprite_name: str):
+	return sprites[sprite_name]
+
+# Good solution for circular imports xd
+from levels import *
