@@ -6,9 +6,9 @@ from position import Position
 from engine import *
 from gui import *
 
-sprite_load('./assets/sprites/kid.png', 32, 32)
+from levels import *
 
-button = instance_create_depth(100, 100, -1, PlayButton)
+level_load(level_main_menu)
 
 while 1:
     engine.update()
