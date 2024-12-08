@@ -17,19 +17,25 @@ GRAY = (220, 220, 220)
 TYPES = ['I', 'O', 'T', 'S', 'Z', 'J', 'L']
 
 SHAPES = {
-    'I': [[1, 1, 1, 1]],
-    'O': [[1, 1],
-          [1, 1]],
-    'T': [[0, 1, 0],
-          [1, 1, 1]],
-    'S': [[0, 1, 1],
-          [1, 1, 0]],
-    'Z': [[1, 1, 0],
-          [0, 1, 1]],
-    'J': [[1, 0, 0],
-          [1, 1, 1]],
-    'L': [[0, 0, 1],
-          [1, 1 ,1]]
+    'I': [[CYAN, CYAN, CYAN, CYAN]],    # 1 1 1 1
+
+    'O': [[YELLOW, YELLOW],             # 1 1
+          [YELLOW, YELLOW]],            # 1 1
+
+    'T': [[BLACK, PURPLE, BLACK],       # 0 1 0
+          [PURPLE, PURPLE, PURPLE]],    # 1 1 1
+
+    'S': [[BLACK, GREEN, GREEN],        # 0 1 1
+          [GREEN, GREEN, BLACK]],       # 1 1 0
+
+    'Z': [[RED, RED, BLACK],            # 1 1 0
+          [BLACK, RED, RED]],           # 0 1 1
+
+    'J': [[BLUE, BLACK, BLACK],         # 1 0 0
+          [BLUE, BLUE, BLUE]],          # 1 1 1
+
+    'L': [[BLACK, BLACK, ORANGE],       # 0 1 1
+          [ORANGE, ORANGE ,ORANGE]]     # 1 1 1
 }
 
 SHAPE_COLORS = {
@@ -55,6 +61,7 @@ INITIAL_PIVOTS = {
 # Information about grid.
 GRID_HEIGHT = 20
 GRID_WIDTH = 10
+GRID_CELL_SIZE = 30
 
 # Information about buttons.
 BUTTON_HEIGHT = 100
