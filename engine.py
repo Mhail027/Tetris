@@ -5,7 +5,7 @@ import os
 from constants import *
 from enum import Enum
 
-from object import *
+from objectt import *
 from sprite import *
 
 pygame.init()
@@ -57,14 +57,28 @@ def sprite_load(sprite_path: str, origin_x: int = 0, origin_y: int = 0):
 	file = os.path.splitext(file_name)
 	sprites[file[0]] = Sprite(sprite_path, origin_x, origin_y)
 
-def instance_create(obj: object):
+def instance_create(obj: Object):
 	for i in range(len(instances)):
 		if (instances[i].depth > obj.depth):
 			instances.insert(i, obj)
-			return
+			return obj
 	instances.append(obj)
+	return obj
 
-def instance_destroy(obj: object):
+def instance_create_depth(x: float, y: float, depth: int, object_name):
+	obj = object_name(x, y, depth)
+	if not isinstance(obj, Object):
+		print("Class used for instancing should be a descendant of Object!!")
+		return None
+	
+	for i in range(len(instances)):
+		if (instances[i].depth > obj.depth):
+			instances.insert(i, obj)
+			return obj
+	instances.append(obj)
+	return obj
+
+def instance_destroy(obj: Object):
 	instances.remove(obj)
 
 def window_get_width():

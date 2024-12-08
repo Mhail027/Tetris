@@ -3,14 +3,12 @@ import pygame
 from engine import *
 
 class Button(Object):
-	width: int
-	height: int
+	width = 60
+	height = 60
 	sprite_name = 'kid'
 	angle = 0
-	def __init__(self, x: float, y: float, width: int, height: int):
-		super().__init__(x, y, -1)
-		self.width = width
-		self.height = height
+	def __init__(self, x: float, y: float, depth: int):
+		super().__init__(x, y, depth)
 
 	def action(self):
 		pass
