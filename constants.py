@@ -1,3 +1,4 @@
+from enum import Enum
 from position import Position
 
 # Colors
@@ -62,3 +63,15 @@ BUTTON_WIDTH = 300
 #Information about screen.
 SCREEN_HEIGHT = 800
 SCREEN_WIDTH = 1200
+
+# Various Engine constants
+class FontAlignment(Enum):
+	LEFT = 0
+	CENTER = 1
+	RIGHT = 2
+	TOP = 3
+	MIDDLE = 4
+	BOTTOM = 5
+
+MB_LEFT = 1
+MB_RIGHT = 3

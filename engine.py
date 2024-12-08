@@ -1,6 +1,7 @@
 import pygame
 import numpy
 import os
+import sys
 
 from constants import *
 from enum import Enum
@@ -14,15 +15,13 @@ sprites = {}
 
 instances = []
 
-class FontAlignment(Enum):
-	# Horizontal Alignment
-	LEFT = 0
-	CENTER = 1
-	RIGHT = 2
-	# Vertical Alignment
-	TOP = 3
-	MIDDLE = 4
-	BOTTOM = 5
+mouse_pressed = {}
+mouse_held = {}
+mouse_released = {}
+
+keyboard_pressed = {}
+keyboard_held = {}
+keyboard_released = {}
 
 class Engine:
 	window = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -38,6 +37,27 @@ class Engine:
 		pass
 	
 	def update(self):
+		mouse_pressed.clear()
+		mouse_released.clear()
+		keyboard_pressed.clear()
+		keyboard_released.clear()
+		for event in pygame.event.get():
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				mouse_pressed[event.button] = True
+				mouse_held[event.button] = True
+			if event.type == pygame.MOUSEBUTTONUP:
+				mouse_released[event.button] = True
+				mouse_held.pop(event.button)
+			if event.type == pygame.KEYDOWN:
+				keyboard_pressed[event.key] = True
+				keyboard_held[event.key] = True
+			if event.type == pygame.KEYUP:
+				keyboard_released[event.key] = True
+				keyboard_held.pop(event.key)
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				sys.exit()
+
 		# Normally, you would want these events to be in a separate for loop,
 		# but we ball
 		for instance in instances:
@@ -56,6 +76,36 @@ def sprite_load(sprite_path: str, origin_x: int = 0, origin_y: int = 0):
 	file_name = os.path.basename(sprite_path)
 	file = os.path.splitext(file_name)
 	sprites[file[0]] = Sprite(sprite_path, origin_x, origin_y)
+
+def mouse_button_check(button):
+	if button in mouse_held:
+		return True
+	return False
+
+def mouse_button_released(button):
+	if button in mouse_released:
+		return True
+	return False
+
+def mouse_button_check_pressed(button):
+	if button in mouse_pressed:
+		return True
+	return False
+
+def keyboard_key_check(key):
+	if key in keyboard_held:
+		return True
+	return False
+
+def keyboard_key_check_pressed(key):
+	if key in keyboard_pressed:
+		return True
+	return False
+
+def keyboard_key_released(key):
+	if key in keyboard_released:
+		return True
+	return False
 
 def instance_create(obj: Object):
 	for i in range(len(instances)):
@@ -189,7 +239,7 @@ def text_get_height(text: str):
 def text_get_size(text: str):
 	return engine.font.size(text)
 
-def font_valign(valign):
+def draw_set_font_valign(valign):
 	valid = False
 	match valign:
 		case FontAlignment.TOP:
@@ -205,7 +255,7 @@ def font_valign(valign):
 	else:
 		engine.fa_vertical = FontAlignment.MIDDLE
 
-def font_halign(halign):
+def draw_set_font_halign(halign):
 	valid = False
 	match halign:
 		case FontAlignment.LEFT:
@@ -221,7 +271,7 @@ def font_halign(halign):
 	else:
 		engine.fa_horizontal = FontAlignment.CENTER
 
-def font_align(halign, valign):
+def draw_set_font_align(halign, valign):
 	valid = False
 	match valign:
 		case FontAlignment.TOP:
@@ -251,4 +301,21 @@ def font_align(halign, valign):
 		engine.fa_horizontal = halign
 	else:
 		engine.fa_horizontal = FontAlignment.CENTER
+
+def draw_set_color(color: tuple[int, int, int]):
+	engine.color = color
+
+def draw_set_bgcolor(color: tuple[int, int, int]):
+	engine.background_color = color
+
+def draw_clear():
+	engine.window.fill(engine.background_color)
+
+def draw_clear_color(color: tuple[int, int, int]):
+	engine.window.fill(color)
+
+def point_in_rectangle(x: float, y: float, x1: float, y1: float, x2: float, y2: float):
+	if x >= x1 and x <= x2 and y >= y1 and y <= y2:
+		return True
+	return False
 
