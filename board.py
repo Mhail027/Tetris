@@ -4,7 +4,8 @@ from constants import *
 from engine import Engine
 from tetromino import Tetromino
 
-class Board:
+
+class Board():
 	height: int = GRID_HEIGHT
 	width: int = GRID_WIDTH
 	prev_grid: List[List[Tuple[int, int, int]]]

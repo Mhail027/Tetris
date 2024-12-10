@@ -336,5 +336,5 @@ def point_in_rectangle(x: float, y: float, x1: float, y1: float, x2: float, y2: 
 def sprite_get_texture(sprite_name: str):
 	return sprites[sprite_name]
 
-# Good solution for circular imports xd
+
 from levels import *
