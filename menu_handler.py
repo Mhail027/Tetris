@@ -27,7 +27,7 @@ class MenuHandler(Object):
 		quit_button = instance_create_depth(0, 0, -1, QuitButton)
 		quit_button.relative_to = play_button
 		quit_button.relative_spacing = 32
-		quit_button.relative_dir = ('down')
+		quit_button.relative_dir = ('bottom')
 	
 	def create_play_menu(self):
 		back_button = instance_create_depth(32, 0, -1,BackButton)

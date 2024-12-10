@@ -23,6 +23,7 @@ class Button(Object):
 	# up, down, left or right
 	relative_dir = ('none')
 	relative_spacing = 10
+	relative_corner = ('top', 'left')
 
 	def __init__(self, x: float, y: float, depth: int = -1):
 		super().__init__(x, y, depth)
@@ -63,19 +64,36 @@ class Button(Object):
 			self.x = window_get_width() * self.relative_x - self.width / 2
 		if self.relative_y >= 0:
 			self.y = window_get_height() * self.relative_y - self.height / 2
+		
 		if self.relative_to != None:
 			offx = 0
 			offy = 0
-			if 'up' in self.relative_dir:
+			if 'top' in self.relative_dir:
 				offy -= self.height + self.relative_spacing
-			if 'down' in self.relative_dir:
+			if 'bottom' in self.relative_dir:
 				offy += self.relative_to.height + self.relative_spacing
 			if 'right' in self.relative_dir:
 				offx += self.relative_to.width + self.relative_spacing
 			if 'left' in self.relative_dir:
 				offx -= self.width + self.relative_spacing
+			if 'center' in self.relative_dir:
+				offx += self.relative_to.width / 2
+				offy += self.relative_to.height / 2
 			self.x = self.relative_to.x + offx
 			self.y = self.relative_to.y + offy
+
+		if self.relative_x >= 0 or self.relative_y >= 0 or self.relative_to != None:
+			if 'top' in self.relative_corner:
+				self.y = self.y
+			if 'left' in self.relative_corner:
+				self.x = self.x
+			if 'bottom' in self.relative_corner:
+				self.y -= self.height
+			if 'right' in self.relative_corner:
+				self.x -= self.width
+			if 'center' in self.relative_corner:
+				self.x -= self.width / 2
+				self.y -= self.height / 2
 
 	def step(self):
 		mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -149,7 +167,7 @@ class CoopButton(ImageButton):
 		super().__init__(x, y, depth)
 	
 	def action(self):
-		pass
+		level_load(levels.level_coop_menu)
 
 class BackButton(Button):
 	text = 'Back'

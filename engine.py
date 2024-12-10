@@ -13,7 +13,17 @@ pygame.init()
 
 sprites = {}
 
+draw_order = []
 instances = []
+
+timer0 = 10000
+current_timer = 0
+
+available_timers = []
+used_timers = []
+
+waiting_timers = []
+active_timers = []
 
 mouse_pressed = {}
 mouse_held = {}
@@ -28,15 +38,22 @@ class Engine:
 	font = pygame.font.Font(None, 36)
 	fa_vertical = FontAlignment.MIDDLE
 	fa_horizontal = FontAlignment.CENTER
+	
+	application_surface = pygame.Surface(pygame.display.get_window_size())
 
 	color = (0, 0, 0)
 	background_color = (255, 255, 255)
+
+	delta_time = 0
+
+	clock = pygame.time.Clock()
 
 	def __init__(self):
 		pygame.display.set_caption('Tetris');
 		pass
 	
 	def update(self):
+		self.delta_time = self.clock.tick(60)
 		mouse_pressed.clear()
 		mouse_released.clear()
 		keyboard_pressed.clear()
@@ -47,28 +64,37 @@ class Engine:
 				mouse_held[event.button] = True
 			if event.type == pygame.MOUSEBUTTONUP:
 				mouse_released[event.button] = True
-				mouse_held.pop(event.button)
+				if event.button in mouse_held:
+					mouse_held.pop(event.button)
 			if event.type == pygame.KEYDOWN:
 				keyboard_pressed[event.key] = True
 				keyboard_held[event.key] = True
 			if event.type == pygame.KEYUP:
 				keyboard_released[event.key] = True
-				keyboard_held.pop(event.key)
+				if event.key in keyboard_held:
+					keyboard_held.pop(event.key)
 			if event.type == pygame.QUIT:
 				pygame.quit()
 				sys.exit()
+			if event in waiting_timers:
+				active_timers.append(event)
+				waiting_timers.remove(event)
 
 		# Normally, you would want these events to be in a separate for loop,
 		# but we ball
+		self.application_surface.fill(self.background_color)
+		draw_order_copy = draw_order.copy()	
 		for instance in instances:
 			instance.step_begin()
 			instance.step()
 			instance.step_end()
 		self.window.fill((255, 255, 255))
-		for instance in instances:
+		for instance in draw_order_copy:
 			instance.draw_begin()
 			instance.draw()
 			instance.draw_end()
+		self.window.blit(self.application_surface, (0, 0))
+		active_timers.clear()
 
 engine = Engine()
 
@@ -119,13 +145,51 @@ def keyboard_key_released(key):
 
 def level_load(level):
 	instances.clear()
+	draw_order.clear()
 	level()
 
+def timer_create():
+	global current_timer
+	if len(available_timers) != 0:
+		timer = available_timers[0]
+		available_timers.remove(timer)
+		used_timers.append(timer)
+		return timer
+	timer_event = pygame.USEREVENT + timer0 + current_timer
+	current_timer += 1
+	timer = pygame.event.Event(timer_event)
+	used_timers.append(timer)
+	return timer
+
+def timer_delete(timer):
+	if timer in used_timers:
+		used_timers.remove(timer)
+		available_timers.append(timer)
+
+def timer_start(timer, duration):
+	if timer in waiting_timers:
+		timer_stop(timer)
+	if timer in used_timers:
+		waiting_timers.append(timer)
+		pygame.time.set_timer(timer, int(duration * 1000))
+
+def timer_stop(timer):
+	if timer in waiting_timers:
+		pygame.time.set_timer(timer, 0)
+		waiting_timers.remove(timer)
+
+def timer_check(timer):
+	if timer in active_timers:
+		return True
+	return False
+
 def instance_create(obj: Object):
-	for i in range(len(instances)):
-		if (instances[i].depth > obj.depth):
-			instances.insert(i, obj)
+	for i in range(len(draw_order)):
+		if (draw_order[i].depth < obj.depth):
+			draw_order.insert(i, obj)
+			instances.append(obj)
 			return obj
+	draw_order.append(obj)
 	instances.append(obj)
 	return obj
 
@@ -135,15 +199,35 @@ def instance_create_depth(x: float, y: float, depth: int, object_name):
 		print("Class used for instancing should be a descendant of Object!!")
 		return None
 	
-	for i in range(len(instances)):
-		if (instances[i].depth > obj.depth):
-			instances.insert(i, obj)
+	for i in range(len(draw_order)):
+		if (draw_order[i].depth < obj.depth):
+			draw_order.insert(i, obj)
+			instances.append(obj)
 			return obj
+	draw_order.append(obj)
 	instances.append(obj)
 	return obj
 
+def instance_exists(object_name):
+	for i in range(len(instances)):
+		if isinstance(instances[i], object_name):
+			return True
+	return False
+
+def instance_get(object_name):
+	inst = []
+	for i in range(len(instances)):
+		if isinstance(instances[i], object_name):
+			inst.append(instances[i])
+	if (len(inst) == 0):
+		return None
+	if (len(inst) == 1):
+		return inst[0]
+	return inst
+
 def instance_destroy(obj: Object):
 	instances.remove(obj)
+	draw_order.remove(obj)
 
 def window_get_width():
 	w, h = pygame.display.get_window_size()
@@ -154,16 +238,16 @@ def window_get_height():
 	return h
 
 def draw_line(x1: float, y1: float, x2: float, y2: float, width: int = 2):
-	pygame.draw.line(engine.window, engine.color, (x1, y1), (x2, y2), 2)
+	pygame.draw.line(engine.application_surface, engine.color, (x1, y1), (x2, y2), 2)
 
 def draw_rectangle(x: float, y: float, width: float, height: float, outline: bool = False):
 	if outline == False:
-		pygame.draw.rect(engine.window, engine.color, pygame.Rect(x, y, width, height))
+		pygame.draw.rect(engine.application_surface, engine.color, pygame.Rect(x, y, width, height))
 		return
-	pygame.draw.line(engine.window, engine.color, (x, y), (x + width, y), 2)
-	pygame.draw.line(engine.window, engine.color, (x, y), (x, y + height), 2)
-	pygame.draw.line(engine.window, engine.color, (x + width, y), (x + width, y + height), 2)
-	pygame.draw.line(engine.window, engine.color, (x, y + height), (x + width, y + height), 2)
+	pygame.draw.line(engine.application_surface, engine.color, (x, y), (x + width, y), 2)
+	pygame.draw.line(engine.application_surface, engine.color, (x, y), (x, y + height), 2)
+	pygame.draw.line(engine.application_surface, engine.color, (x + width, y), (x + width, y + height), 2)
+	pygame.draw.line(engine.application_surface, engine.color, (x, y + height), (x + width, y + height), 2)
 
 def draw_sprite_ext(x: float, y: float, sprite_name: str, angle: float = 0, xscale: float = 1, yscale: float = 1):
 	sprite = sprites[sprite_name]
@@ -179,11 +263,11 @@ def draw_sprite_ext(x: float, y: float, sprite_name: str, angle: float = 0, xsca
 
 	rotated_ox = sprite.origin_x * numpy.cos(rangle) + sprite.origin_y * numpy.sin(rangle) 
 	rotated_oy = sprite.origin_x * numpy.sin(rangle) - sprite.origin_y * numpy.cos(rangle)
-	engine.window.blit(rotated_sprite, (x + min_box[0] - rotated_ox, y - max_box[1] + rotated_oy))
+	engine.application_surface.blit(rotated_sprite, (x + min_box[0] - rotated_ox, y - max_box[1] + rotated_oy))
 
 def draw_sprite(x: float, y: float, sprite_name: str):
 	sprite = sprites[sprite_name]
-	engine.window.blit(sprite.texture, (x - sprite.origin_x, y - sprite.origin_y))
+	engine.application_surface.blit(sprite.texture, (x - sprite.origin_x, y - sprite.origin_y))
 
 def draw_text(x: float, y: float, text: str):
 	text_width, text_height = engine.font.size(text)
@@ -211,7 +295,7 @@ def draw_text(x: float, y: float, text: str):
 		case _:
 			yy = y
 	
-	engine.window.blit(rendered_text, (xx, yy))
+	engine.application_surface.blit(rendered_text, (xx, yy))
 
 def draw_text_scaled(x: float, y: float, text: str, xscale: float, yscale: float):
 	text_width, text_height = engine.font.size(text)
@@ -240,7 +324,7 @@ def draw_text_scaled(x: float, y: float, text: str, xscale: float, yscale: float
 		case _:
 			yy = y
 	
-	engine.window.blit(rendered_text, (xx, yy))
+	engine.application_surface.blit(rendered_text, (xx, yy))
 
 def text_get_width(text: str):
 	text_width, text_height = engine.font.size(text)

@@ -17,25 +17,40 @@ GRAY = (220, 220, 220)
 TYPES = ['I', 'O', 'T', 'S', 'Z', 'J', 'L']
 
 SHAPES = {
-	'I': [[CYAN, CYAN, CYAN, CYAN]],    # 1 1 1 1
+	'I':[	[0, 0, 0, 0],
+			[0, 0, 0, 0],
+			[1, 1, 1, 1],
+			[0, 0, 0, 0]
+		],    
 
-	'O': [[YELLOW, YELLOW],             # 1 1
-		  [YELLOW, YELLOW]],            # 1 1
+	'O':[	[1, 1],          
+		  	[1, 1],
+		],
 
-	'T': [[BLACK, PURPLE, BLACK],       # 0 1 0
-		  [PURPLE, PURPLE, PURPLE]],    # 1 1 1
+	'T':[	[0, 1, 0],
+		  	[1, 1, 1],
+			[0, 0, 0]
+		],
 
-	'S': [[BLACK, GREEN, GREEN],        # 0 1 1
-		  [GREEN, GREEN, BLACK]],       # 1 1 0
+	'S':[	[0, 1, 1],
+			[1, 1, 0],
+		  	[0, 0, 0]
+		],
 
-	'Z': [[RED, RED, BLACK],            # 1 1 0
-		  [BLACK, RED, RED]],           # 0 1 1
+	'Z':[	[1, 1, 0],
+			[0, 1, 1],
+		  	[0, 0, 0]
+		],
 
-	'J': [[BLUE, BLACK, BLACK],         # 1 0 0
-		  [BLUE, BLUE, BLUE]],          # 1 1 1
+	'J':[	[1, 0, 0],
+			[1, 1, 1],
+		  	[0, 0, 0]
+		],
 
-	'L': [[BLACK, BLACK, ORANGE],       # 0 1 1
-		  [ORANGE, ORANGE ,ORANGE]]     # 1 1 1
+	'L':[	[0, 0, 1],
+			[1, 1, 1],
+		  	[0, 0 ,0]
+		]
 }
 
 SHAPE_COLORS = {
@@ -46,6 +61,17 @@ SHAPE_COLORS = {
 	'Z': RED,
 	'J': BLUE,
 	'L': ORANGE
+}
+
+SHAPE_COLOR_STR = {
+	'I': 'cyan',
+	'O': 'yellow',
+	'T': 'purple',
+	'S': 'green',
+	'Z': 'red',
+	'J': 'blue',
+	'L': 'orange'
+
 }
 
 INITIAL_PIVOTS = {
@@ -59,9 +85,9 @@ INITIAL_PIVOTS = {
 }
 
 # Information about grid.
-GRID_HEIGHT = 20
+GRID_HEIGHT = 30
 GRID_WIDTH = 10
-GRID_CELL_SIZE = 30
+GRID_CELL_SIZE = 32
 
 # Information about buttons.
 BUTTON_HEIGHT = 100
