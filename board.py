@@ -1,145 +1,88 @@
 import numpy as np
 from typing import List, Tuple
 from constants import *
-from engine import Engine
-from tetromino import Tetromino
+from engine import *
+from position import Position
 
-
-class Board():
+class Board(Object):
 	height: int = GRID_HEIGHT
 	width: int = GRID_WIDTH
-	prev_grid: List[List[Tuple[int, int, int]]]
-	grid: List[List[Tuple[int, int, int]]]
-	curr_tetromino: Tetromino
-	score: int
-	game_over: bool
+	grid: list[list[str,...],...] 
+	cleared_lines: int = 0	
+	
+	is_full: bool = False
+	cell_scale: float = 1
+	cell_size: float = 32
 
-	def __init__(self):
+	empty_line: list[str]
+
+	def __init__(self, x: float, y: float, depth: int = 0):
+		super().__init__(x, y, depth)
 		self.clear()
 
 	def clear(self):
-		self.prev_grid = np.full((self.height, self.width, 3),
-							BLACK, dtype = object).tolist()
-		self.grid = np.full((self.height, self.width, 3),
-							BLACK, dtype = object).tolist()
-		self.score = 0
-		self.game_over = False
-		self.spawn_tetromino()
+		self.grid = []
+		self.empty_line = []
+		for i in range(self.width):
+			self.empty_line.append('black')
+		for j in range(self.height):
+			self.grid.append(self.empty_line.copy())
 
-
-	def spawn_tetromino(self):
-		if not self.change_curr_tetromino(Tetromino()):
-			self.game_over = True
-
-	def change_curr_tetromino(self, tetromino: Tetromino) -> bool:
-		if not self.tetromino_position_is_valid(tetromino):
-			return False
-
-		self.update_grid(tetromino)
-		return True
-
-
-	def tetromino_position_is_valid(self, tetromino: Tetromino) -> bool:
-		x_pivot_in_tetromino = tetromino.pivot.x
-		y_pivot_in_tetromino = tetromino.pivot.y
-
-		x_pivot_in_grid = tetromino.pivot_in_grid.x
-		y_pivot_in_grid = tetromino.pivot_in_grid.y
-
-		rows = len(tetromino.shape)
-		cols = len(tetromino.shape[0])
-
-		for i in range(rows):
-			for j in range(cols):
-				x = x_pivot_in_grid + (j - x_pivot_in_tetromino)
-				if x < 0 or x >= GRID_WIDTH:
-					return False
-
-				y = y_pivot_in_grid + (i - y_pivot_in_tetromino)
-				if y < 0:
-					return False
-
-				if tetromino.shape[i][j] == BLACK:
+	def verify_space(self, pivot: Position, space: List[List[int]]):
+		for j in range(len(space)):
+			for i in range(len(space[j])):
+				if space[j][i] == 0:
 					continue
-
-				if tuple(self.prev_grid[y][x]) != BLACK:
+				if not point_in_rectangle(pivot.x + i, pivot.y + j, 0, 0, self.width - 1, self.height - 1):
 					return False
-
+				if (self.grid[pivot.y + j][pivot.x + i] != 'black'):
+					return False
 		return True
-
-	def update_grid(self, new_tetromino: Tetromino):
-		self.curr_tetromino = new_tetromino
-
-		x_pivot_in_tetromino = self.curr_tetromino.pivot.x
-		y_pivot_in_tetromino = self.curr_tetromino.pivot.y
-
-		x_pivot_in_grid = self.curr_tetromino.pivot_in_grid.x
-		y_pivot_in_grid = self.curr_tetromino.pivot_in_grid.y
-
-		rows = len(self.curr_tetromino.shape)
-		cols = len(self.curr_tetromino.shape[0])
-
-		self.grid = [row[:] for row in self.prev_grid]
-		for i in range(rows):
-			for j in range(cols):
-				x = x_pivot_in_grid + (i - x_pivot_in_tetromino)
-				y = y_pivot_in_grid + (j - y_pivot_in_tetromino)
-
-				self.grid[x][y] = self.curr_tetromino.shape[i][j]
-
-	def rotate(self):
-		new_tetromino = Tetromino(self.curr_tetromino)
-		new_tetromino.rotate(1)
-		self.change_curr_tetromino(new_tetromino)
-
-	def move_to_left(self):
-		new_tetromino = Tetromino(self.curr_tetromino)
-		new_tetromino.move_to_left()
-		self.change_curr_tetromino(new_tetromino)
-
-	def move_to_right(self):
-		new_tetromino = Tetromino(self.curr_tetromino)
-		new_tetromino.move_to_right()
-		self.change_curr_tetromino(new_tetromino)
-
-	def move_down(self):
-		new_tetromino = Tetromino(self.curr_tetromino)
-		new_tetromino.move_down()
-		if not self.change_curr_tetromino(new_tetromino):
-			self.verify_clears()
-			self.prev_grid = [row[:] for row in self.grid]
-			self.spawn_tetromino()
-
-	def verify_clears(self):
-		full_lines = self.get_full_lines()
-		removed_lines = 0
-		for row in full_lines:
-			row = row - removed_lines
-
-			self.grid.pop(row)
-			self.grid.insert(0, [BLACK] * 10)
-
-			removed_lines += 1
-
-
-	def get_full_lines(self):
-		y_pivot_in_grid = self.curr_tetromino.pivot_in_grid.y
-		y_pivot_in_shape = self.curr_tetromino.pivot.y
-		rows_shape = len(self.curr_tetromino.shape)
-
-		start_row = y_pivot_in_grid - y_pivot_in_shape
-		end_row = y_pivot_in_grid + (rows_shape -  y_pivot_in_shape)
-
-		full_lines = []
-		for i in range(start_row, end_row + 1):
-			full_line = True
-			for j in range(GRID_WIDTH):
-				if tuple(self.grid[i][j]) == BLACK:
-					full_line = False
+	
+	def clear_lines(self):
+		idx = self.height - 1
+		cleared_lines = 0
+		while idx >= 0:
+			can_clear = True
+			for i in range(self.width):
+				if self.grid[idx][i] == 'black':
+					can_clear = False
 					break
+			if can_clear:
+				cleared_lines += 1 
+				self.grid.pop(idx)
+				self.grid.insert(0, self.empty_line.copy())
+				idx += 1
+			idx -= 1
+		self.cleared_lines += cleared_lines
+		return cleared_lines
 
-			if full_line:
-				full_lines.append(i)
+	def merge_tetromino(self, pivot: Position, space: List[List[int]], color: str):
+		for j in range(len(space)):
+			for i in range(len(space[j])):
+				if (space[j][i] != 0):
+					self.grid[pivot.y + j][pivot.x + i] = color
+		if pivot.y == 0:
+			self.is_full = True
+			return
 
-		return full_lines
+	def step_begin(self):
+		cell_width = window_get_width() / (self.width + 1)
+		cell_height = window_get_height() / (self.height + 1)
+		self.cell_scale = min(cell_width / 32, cell_height / 32)
+		self.cell_size = self.cell_scale * 32
 
+		board_width = self.cell_size * self.width - self.width
+		board_height = self.cell_size * self.height - self.height
+
+		self.x = window_get_width() / 2 - board_width / 2
+		self.y = window_get_height() / 2 - board_height / 2
+
+	def draw(self):
+		for i in range(self.width):
+			for j in range(self.height):
+				draw_sprite_ext(self.x + self.cell_size * i - i, self.y + self.cell_size * j - j, 'block_' + self.grid[j][i], 0, self.cell_scale, self.cell_scale)
+	
+	def draw_end(self):
+		draw_set_color((128, 128, 128))
+		draw_rectangle(self.x, self.y, self.x + self.width * self.cell_size - self.width, self.y + self.height * self.cell_size - self.height, True)
