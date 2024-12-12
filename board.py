@@ -85,4 +85,4 @@ class Board(Object):
 	
 	def draw_end(self):
 		draw_set_color((128, 128, 128))
-		draw_rectangle(self.x, self.y, self.width * self.cell_size - self.width, self.height * self.cell_size - self.height, True)
+		draw_rectangle(self.x, self.y, self.x + self.width * self.cell_size - self.width, self.y + self.height * self.cell_size - self.height, True)

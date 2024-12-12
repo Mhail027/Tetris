@@ -18,7 +18,6 @@ class MenuHandler(Object):
 			case _:
 				self.create_main_menu()
 	
-
 	def create_main_menu(self):
 		play_button = instance_create_depth(0, 0, -1, PlayButton)
 		play_button.relative_x = 0.5

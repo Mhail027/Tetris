@@ -39,7 +39,7 @@ class Button(Object):
 
 	def draw_background(self):
 		draw_set_color(WHITE)
-		draw_rectangle(self.x, self.y, self.width, self.height, False)
+		draw_rectangle(self.x, self.y, self.x + self.width, self.y + self.height, False)
 
 	def draw_outline(self):
 		if self.selected:
@@ -47,7 +47,7 @@ class Button(Object):
 		else:
 			draw_set_color(BLACK)
 
-		draw_rectangle(self.x, self.y, self.width, self.height, True)
+		draw_rectangle(self.x, self.y, self.x + self.width, self.y + self.height, True, 4)
 	
 	def draw_own_text(self):
 		draw_set_font_align(FontAlignment.CENTER, FontAlignment.MIDDLE)
@@ -58,7 +58,7 @@ class Button(Object):
 		self.draw_background()
 		self.draw_outline()
 		self.draw_own_text()	
-	
+
 	def step_begin(self):
 		if self.relative_x >= 0:
 			self.x = window_get_width() * self.relative_x

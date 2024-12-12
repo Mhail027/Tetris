@@ -34,17 +34,18 @@ keyboard_held = {}
 keyboard_released = {}
 
 class Engine:
-	window = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+	window = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
 	font = pygame.font.Font(None, 36)
 	fa_vertical = FontAlignment.MIDDLE
 	fa_horizontal = FontAlignment.CENTER
 	
-	application_surface = pygame.Surface(pygame.display.get_window_size())
+	application_surface = pygame.Surface(pygame.display.get_window_size(), pygame.SRCALPHA)
 	
 	default_color = (255, 255, 255)
 	color = (255, 255, 255)
 	background_color = (0, 0, 0)
-	alpha = 1
+
+	alpha = 255
 
 	delta_time = 0
 
@@ -81,6 +82,9 @@ class Engine:
 			if event in waiting_timers:
 				active_timers.append(event)
 				waiting_timers.remove(event)
+			if event.type == pygame.VIDEORESIZE:
+				pygame.display.update()
+				self.application_surface = pygame.Surface(pygame.display.get_window_size())
 
 		# Normally, you would want these events to be in a separate for loop,
 		# but we ball
@@ -91,7 +95,7 @@ class Engine:
 			instance.step_begin()
 			instance.step()
 			instance.step_end()
-		self.window.fill((255, 255, 255))
+		self.application_surface.fill(self.background_color)
 		for instance in draw_order_copy:
 			instance.draw_begin()
 			instance.draw()
@@ -237,16 +241,32 @@ def window_get_height():
 	return h
 
 def draw_line(x1: float, y1: float, x2: float, y2: float, width: int = 2):
-	pygame.draw.line(engine.application_surface, engine.color, (x1, y1), (x2, y2), 2)
+	line = pygame.Surface((x2 - x1 + 1 + width, y2 - y1 + 1 + width), pygame.SRCALPHA)
+	line.fill((0, 0, 0, 0))
+	line.set_alpha(engine.alpha)
+	pygame.draw.line(line, engine.color, (width // 2, width // 2), (x2 - x1 + width // 2, y2 - y1 + width // 2), width)
+	engine.application_surface.blit(line, (x1, y1))
 
-def draw_rectangle(x: float, y: float, width: float, height: float, outline: bool = False):
+def draw_rectangle(x1: float, y1: float, x2: float, y2: float, outline: bool = False, owidth: int = 2):
+	width = x2 - x1 + 1
+	height = y2 - y1 + 1
+	rect = pygame.Surface((width, height), pygame.SRCALPHA)
+	rect.fill((0, 0, 0, 0))
+	rect.set_alpha(engine.alpha)
 	if outline == False:
-		pygame.draw.rect(engine.application_surface, engine.color, pygame.Rect(x, y, width, height))
+		pygame.draw.rect(rect, engine.color, pygame.Rect(0, 0, width, height))
+		engine.application_surface.blit(rect, (x1, y1))
 		return
-	pygame.draw.line(engine.application_surface, engine.color, (x, y), (x + width, y), 2)
-	pygame.draw.line(engine.application_surface, engine.color, (x, y), (x, y + height), 2)
-	pygame.draw.line(engine.application_surface, engine.color, (x + width, y), (x + width, y + height), 2)
-	pygame.draw.line(engine.application_surface, engine.color, (x, y + height), (x + width, y + height), 2)
+	ltoff = owidth // 2
+	broff = owidth // 2 + 1
+	if owidth % 2 == 0:
+		ltoff = ltoff - 1
+	
+	pygame.draw.line(rect, engine.color, (0, ltoff), (0 + width, ltoff), owidth)
+	pygame.draw.line(rect, engine.color, (ltoff, 0), (ltoff, 0 + height), owidth)
+	pygame.draw.line(rect, engine.color, (0 + width - broff, 0), (0 + width - broff, 0 + height), owidth)
+	pygame.draw.line(rect, engine.color, (0, 0 + height - broff), (0 + width, 0 + height - broff), owidth)
+	engine.application_surface.blit(rect, (x1, y1))
 
 def draw_sprite_ext(x: float, y: float, sprite_name: str, angle: float = 0, xscale: float = 1, yscale: float = 1):
 	sprite = sprites[sprite_name]
@@ -262,11 +282,20 @@ def draw_sprite_ext(x: float, y: float, sprite_name: str, angle: float = 0, xsca
 
 	rotated_ox = sprite.origin_x * numpy.cos(rangle) + sprite.origin_y * numpy.sin(rangle) 
 	rotated_oy = sprite.origin_x * numpy.sin(rangle) - sprite.origin_y * numpy.cos(rangle)
-	engine.application_surface.blit(rotated_sprite, (x + min_box[0] - rotated_ox, y - max_box[1] + rotated_oy))
+	
+	sprite_alpha = pygame.Surface(rotated_sprite.get_size(), pygame.SRCALPHA)
+	sprite_alpha.fill((0, 0, 0, 0))
+	sprite_alpha.set_alpha(engine.alpha)
+	sprite_alpha.blit(rotated_sprite, (0, 0))
+	engine.application_surface.blit(sprite_alpha, (x + min_box[0] - rotated_ox, y - max_box[1] + rotated_oy))
 
 def draw_sprite(x: float, y: float, sprite_name: str):
 	sprite = sprites[sprite_name]
-	engine.application_surface.blit(sprite.texture, (x - sprite.origin_x, y - sprite.origin_y))
+	sprite_alpha = pygame.Surface(sprite.texture.get_size(), pygame.SRCALPHA)
+	sprite_alpha.fill((0, 0, 0, 0))
+	sprite_alpha.set_alpha(engine.alpha)
+	sprite_alpha.blit(sprite.texture, (0, 0))
+	engine.application_surface.blit(sprite_alpha, (x - sprite.origin_x, y - sprite.origin_y))
 
 def draw_text(x: float, y: float, text: str):
 	text_width, text_height = engine.font.size(text)
@@ -293,8 +322,11 @@ def draw_text(x: float, y: float, text: str):
 			yy = y - text_height
 		case _:
 			yy = y
-	
-	engine.application_surface.blit(rendered_text, (xx, yy))
+	text_alpha = pygame.Surface(rendered_text.get_size(), pygame.SRCALPHA)	
+	text_alpha.fill((0, 0, 0, 0))
+	text_alpha.set_alpha(engine.alpha)
+	text_alpha.blit(rendered_text, (0, 0))
+	engine.application_surface.blit(text_alpha, (xx, yy))
 
 def draw_text_scaled(x: float, y: float, text: str, xscale: float, yscale: float):
 	text_width, text_height = engine.font.size(text)
@@ -322,8 +354,13 @@ def draw_text_scaled(x: float, y: float, text: str, xscale: float, yscale: float
 			yy = y - yscale * text_height
 		case _:
 			yy = y
-	
-	engine.application_surface.blit(rendered_text, (xx, yy))
+
+	text_alpha = pygame.Surface(rendered_text.get_size(), pygame.SRCALPHA)	
+	text_alpha.fill((0, 0, 0, 0))
+	text_alpha.set_alpha(engine.alpha)
+	text_alpha.blit(rendered_text, (0, 0))
+
+	engine.application_surface.blit(text_alpha, (xx, yy))
 
 def text_get_width(text: str):
 	text_width, text_height = engine.font.size(text)
@@ -419,5 +456,12 @@ def point_in_rectangle(x: float, y: float, x1: float, y1: float, x2: float, y2: 
 def sprite_get_texture(sprite_name: str):
 	return sprites[sprite_name]
 
+def draw_set_alpha(alpha: float):
+	if alpha < 0 or alpha > 1:
+		return
+	engine.alpha = int(alpha * 255)
+
+def draw_get_alpha():
+	return engine.alpha / 255
 
 from levels import *
