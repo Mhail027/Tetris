@@ -41,6 +41,7 @@ class Board(Object):
 	
 	def clear_lines(self):
 		idx = self.height - 1
+		cleared_lines = 0
 		while idx >= 0:
 			can_clear = True
 			for i in range(self.width):
@@ -48,11 +49,13 @@ class Board(Object):
 					can_clear = False
 					break
 			if can_clear:
-				self.cleared_lines += 1 
+				cleared_lines += 1 
 				self.grid.pop(idx)
 				self.grid.insert(0, self.empty_line.copy())
 				idx += 1
 			idx -= 1
+		self.cleared_lines += cleared_lines
+		return cleared_lines
 
 	def merge_tetromino(self, pivot: Position, space: List[List[int]], color: str):
 		for j in range(len(space)):
@@ -62,7 +65,6 @@ class Board(Object):
 		if pivot.y == 0:
 			self.is_full = True
 			return
-		self.clear_lines()
 
 	def step_begin(self):
 		cell_width = window_get_width() / (self.width + 1)
@@ -81,3 +83,6 @@ class Board(Object):
 			for j in range(self.height):
 				draw_sprite_ext(self.x + self.cell_size * i - i, self.y + self.cell_size * j - j, 'block_' + self.grid[j][i], 0, self.cell_scale, self.cell_scale)
 	
+	def draw_end(self):
+		draw_set_color((128, 128, 128))
+		draw_rectangle(self.x, self.y, self.width * self.cell_size - self.width, self.height * self.cell_size - self.height, True)

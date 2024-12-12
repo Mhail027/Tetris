@@ -13,6 +13,7 @@ class Tetromino(Object):
 	color: str
 	pivot: Position
 	board: Board
+	owner: str
 
 	def __init__(self, x: float, y: float, depth: int = 0, shape: str = 'O'):
 		super().__init__(x, y, depth)
@@ -23,26 +24,91 @@ class Tetromino(Object):
 	
 	# Rotate to right
 	def rotate(self):
+		old_shape = self.shape
 		transposed_matrix = np.transpose(self.shape).tolist()
 		rotated_matrix_cc = np.fliplr(transposed_matrix).tolist()
-		rotated_matrix_cw = np.flipud(transposed_matrix).tolist()
-		if self.board.verify_space(self.pivot, rotated_matrix_cc):
-			self.shape = rotated_matrix_cc
-		elif self.board.verify_space(self.pivot, rotated_matrix_cw):
-			self.shape = rotated_matrix_cw
-			
+		self.shape = rotated_matrix_cc
+		new_pivot = Position(self.pivot.x, self.pivot.y)
+		if new_pivot.x < 0:
+			ignore = True
+			for i in range(len(self.shape)):
+				if self.shape[i][0] != 0:
+					ignore = False
+					break
+			if not ignore:
+				new_pivot.x = 0
+		if new_pivot.x > self.board.width - len(self.shape[0]):
+			ignore = True
+			for i in range(len(self.shape)):
+				if self.shape[i][len(self.shape[0]) - 1] != 0:
+					ignore = False
+					break
+			if not ignore:
+				new_pivot.x = self.board.width - len(self.shape[0])
+		if new_pivot.y < 0:
+			ignore = True
+			for i in range(len(self.shape[0])):
+				if self.shape[0][i] != 0:
+					ignore = False
+					break
+			if not ignore:
+				new_pivot.y = 0
+		if new_pivot.y > self.board.height - len(self.shape):
+			ignore = True
+			for i in range(len(self.shape[0])):
+				if self.shape[len(self.shape) - 1][i] != 0:
+					ignore = False
+					break
+			if not ignore:
+				new_pivot.y = self.board.height - len(self.shape)
 
+
+		if self.check_tetro_collision(new_pivot):
+			self.shape = old_shape
+			return
+		
+		if self.board.verify_space(new_pivot, rotated_matrix_cc):
+			self.shape = rotated_matrix_cc
+			self.pivot = new_pivot
+			return
+		self.shape = old_shape
+	
+	def check_tetro_collision(self, pivot: Position):
+		for tetro in instance_get(Tetromino):
+			if tetro == self:
+				continue
+			for sy in range(len(self.shape)):
+				for sx in range(len(self.shape[0])):
+					for ty in range(len(tetro.shape)):
+						for tx in range(len(tetro.shape[0])):
+							if self.shape[sy][sx] == 0 or tetro.shape[ty][tx] == 0:
+								continue
+							if pivot.x + sx == tetro.pivot.x + tx and pivot.y + sy == tetro.pivot.y + ty:
+								return True
+		return False
+	
 	def move_left(self):
 		new_pivot = Position(self.pivot.x - 1, self.pivot.y)
+		if self.check_tetro_collision(new_pivot):
+			return
 		if self.board.verify_space(new_pivot, self.shape):
 			self.pivot = new_pivot
 
 	def move_right(self):
 		new_pivot = Position(self.pivot.x + 1, self.pivot.y)
+		if self.check_tetro_collision(new_pivot):
+			return
 		if self.board.verify_space(new_pivot, self.shape):
 			self.pivot = new_pivot
 
 	def move_down(self):
+		new_pivot = Position(self.pivot.x, self.pivot.y + 1)
+		if self.check_tetro_collision(new_pivot):
+			return
+		if self.board.verify_space(new_pivot, self.shape):
+			self.pivot = new_pivot
+
+	def move_down_forced(self):
 		new_pivot = Position(self.pivot.x, self.pivot.y + 1)
 		if self.board.verify_space(new_pivot, self.shape):
 			self.pivot = new_pivot

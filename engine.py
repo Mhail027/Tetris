@@ -40,9 +40,11 @@ class Engine:
 	fa_horizontal = FontAlignment.CENTER
 	
 	application_surface = pygame.Surface(pygame.display.get_window_size())
-
-	color = (0, 0, 0)
-	background_color = (255, 255, 255)
+	
+	default_color = (255, 255, 255)
+	color = (255, 255, 255)
+	background_color = (0, 0, 0)
+	alpha = 1
 
 	delta_time = 0
 
@@ -84,7 +86,8 @@ class Engine:
 		# but we ball
 		self.application_surface.fill(self.background_color)
 		draw_order_copy = draw_order.copy()	
-		for instance in instances:
+		instances_copy = instances.copy()
+		for instance in instances_copy:
 			instance.step_begin()
 			instance.step()
 			instance.step_end()
@@ -219,10 +222,6 @@ def instance_get(object_name):
 	for i in range(len(instances)):
 		if isinstance(instances[i], object_name):
 			inst.append(instances[i])
-	if (len(inst) == 0):
-		return None
-	if (len(inst) == 1):
-		return inst[0]
 	return inst
 
 def instance_destroy(obj: Object):

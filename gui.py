@@ -61,9 +61,9 @@ class Button(Object):
 	
 	def step_begin(self):
 		if self.relative_x >= 0:
-			self.x = window_get_width() * self.relative_x - self.width / 2
+			self.x = window_get_width() * self.relative_x
 		if self.relative_y >= 0:
-			self.y = window_get_height() * self.relative_y - self.height / 2
+			self.y = window_get_height() * self.relative_y
 		
 		if self.relative_to != None:
 			offx = 0
@@ -113,7 +113,7 @@ class ImageButton(Button):
 	
 	def draw_own_text(self):
 		draw_set_font_align(FontAlignment.CENTER, FontAlignment.MIDDLE)
-		draw_set_color(BLACK)
+		draw_set_color(WHITE)
 		th = text_get_height(self.text)
 		draw_text(self.x + self.width / 2, self.y + self.height + th + 16, self.text)
 	
