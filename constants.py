@@ -12,6 +12,7 @@ ORANGE = (255, 165, 0)
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GRAY = (220, 220, 220)
+LTGRAY = (128, 128, 128)
 
 # Information about tetrominoes
 TYPES = ['I', 'O', 'T', 'S', 'Z', 'J', 'L']

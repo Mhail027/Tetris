@@ -69,8 +69,12 @@ class Board(Object):
 				if (space[j][i] != 0):
 					self.grid[pivot.y + j][pivot.x + i] = color
 		if pivot.y == 0:
-			self.is_full = True
-			return
+			first_line_empty = True
+			for space in space[0]:
+				if space != 'black':
+					first_line_empty = False
+			if not first_line_empty:
+				self.is_full = True
 		self.update_surface()
 
 	def step_begin(self):

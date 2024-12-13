@@ -3,6 +3,7 @@ from engine import *
 from board import Board
 from tetromino import Tetromino
 from position import Position
+from gui import *
 
 import random
 
@@ -33,6 +34,7 @@ class CoopHandler(Object):
 		self.game_board.clear()
 		self.p1_next_tetro = random.choice(TYPES)
 		self.p2_next_tetro = random.choice(TYPES)
+		timer_start(self.tetro_timer, self.compute_fall_time())
 
 	def spawn_tetromino(self, owner):
 		new_tetromino = self.p1_next_tetro
@@ -51,6 +53,9 @@ class CoopHandler(Object):
 		tetro.pivot = Position(tx, ty)
 		tetro.board = self.game_board
 		tetro.owner = owner
+		if tetro.check_tetro_collision(tetro.pivot):
+			instance_destroy(tetro)
+			return None
 		if owner == self.player1:
 			self.p1_next_tetro = random.choice(TYPES)
 		else:
@@ -78,14 +83,10 @@ class CoopHandler(Object):
 		
 		if p1tetro == None:
 			self.spawn_tetromino(self.player1)
-			timer_start(self.tetro_timer, self.compute_fall_time())
 
 		if p2tetro == None:
 			self.spawn_tetromino(self.player2)
-			timer_start(self.tetro_timer, self.compute_fall_time())
 			
-
-
 	def step(self):
 		active_tetros = instance_get(Tetromino)
 		tetro1 = None
@@ -162,11 +163,40 @@ class CoopHandler(Object):
 			self.score += cleared_lines * 10 + 5 * (cleared_lines - 1)
 		if self.game_over == False and self.game_board.is_full:
 			self.game_over = True
+			for tetro in instance_get(Tetromino):
+				instance_destroy(tetro)
+			for back_button in instance_get(BackButton):
+				back_button.relative_x = 0.5
+				back_button.relative_y = 0.8
+				back_button.relative_corner = ('bottom', 'center')
+				back_button.width = 300
+				back_button.height = 100
 
 	def draw(self):
-		draw_set_font_align(FontAlignment.LEFT, FontAlignment.TOP)
-		draw_set_color(WHITE)
-		draw_text(16, 16, 'Score: ' + str(int(self.score * 10)))
+		if not self.game_over:
+			draw_set_font_align(FontAlignment.LEFT, FontAlignment.TOP)
+			draw_set_color(WHITE)
+			draw_text(16, 16, 'Score: ' + str(int(self.score * 10)))
+
+		if self.game_over:
+			draw_set_alpha(0.8)
+			draw_set_color(LTGRAY)
+			ww = self.game_board.width * self.game_board.cell_size - self.game_board.width
+			hh = self.game_board.height * self.game_board.cell_size - self.game_board.height
+			draw_rectangle(self.game_board.x, self.game_board.y, self.game_board.x + ww, self.game_board.y + hh, False)
+			draw_set_alpha(1)
+			draw_set_color(RED)
+			tw = text_get_width('GAME OVER')
+			th = text_get_height('GAME OVER')
+			tscale = ww / (tw + 1)
+			draw_set_font_halign(FontAlignment.CENTER)
+			draw_text_scaled(self.game_board.x + ww / 2, self.game_board.y + 16 + th * tscale / 2, 'GAME OVER', tscale, tscale)
+			stext = 'Score: ' + str(int(self.score * 10))
+			sw = text_get_width(stext)
+			sh = text_get_height(stext)
+			sscale = tscale / 2
+			draw_set_color(BLACK)
+			draw_text_scaled(self.game_board.x + ww / 2, self.game_board.y + 16 + 3 * th * tscale / 2 + sh * sscale / 2, stext, sscale, sscale)
 
 	def draw_end(self):
 		if self.game_over:

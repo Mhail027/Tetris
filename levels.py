@@ -11,7 +11,7 @@ def level_play_menu():
 	menu_handler = instance_create(MenuHandler(0, 0, 0, 'play_menu'))
 
 def level_coop_menu():
-	coop_handler = instance_create(CoopHandler(0, 0, 0))
+	coop_handler = instance_create(CoopHandler(0, 0, -1))
 	back_button = instance_create(BackButton(0, 0, -1))
 	back_button.width = 150
 	back_button.height = 50

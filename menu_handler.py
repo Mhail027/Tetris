@@ -31,7 +31,9 @@ class MenuHandler(Object):
 	
 	def create_play_menu(self):
 		back_button = instance_create_depth(32, 0, -1,BackButton)
-		back_button.y = window_get_height() - back_button.height - 32
+		back_button.relative_x = 0.01
+		back_button.relative_y = 0.99
+		back_button.relative_corner = ('bottom', 'left')
 
 		duel_button = instance_create_depth(0, 0, -1, DuelButton)
 		duel_button.relative_x = 0.33
