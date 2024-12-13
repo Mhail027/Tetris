@@ -106,7 +106,7 @@ class Board(Object):
 		for i in range(self.width):
 			for j in range(self.height):
 				draw_sprite_ext(0 + self.cell_size * i - i, 0 + self.cell_size * j - j, 'block_' + self.grid[j][i], 0, self.cell_scale, self.cell_scale)
-				
+
 		draw_set_color((128, 128, 128))
 		draw_rectangle(0, 0, 0 + self.width * self.cell_size - self.width, 0 + self.height * self.cell_size - self.height, True)
 		surface_reset_target()

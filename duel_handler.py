@@ -190,6 +190,9 @@ class DuelHandler(Object):
 					draw_sprite_ext(xx, yy, next_tetro_sprite, 0, self.p1_game_board.cell_scale, self.p1_game_board.cell_scale)
 
 	def send_garbage(self, recipient_board: Board, num_lines: int):
+		if num_lines == 0:
+			return
+
 		garbage_lines = []
 		for _ in range(num_lines):
 			garbage_row = ['gray'] * recipient_board.width
@@ -197,7 +200,7 @@ class DuelHandler(Object):
 			garbage_row[empty_cell] = 'black'
 			garbage_lines.append(garbage_row)
 
-		if num_lines > 0:
-			if not all(cell == 'black' for cell in recipient_board.grid[num_lines - 1]):
-				self.game_over = True
-			recipient_board.grid = recipient_board.grid[1:recipient_board.height] + garbage_lines
+		if not all(cell == 'black' for cell in recipient_board.grid[num_lines - 1]):
+			self.game_over = True
+		recipient_board.grid = recipient_board.grid[1:recipient_board.height] + garbage_lines
+		recipient_board.update_surface()
