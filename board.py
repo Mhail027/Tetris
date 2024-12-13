@@ -14,6 +14,8 @@ class Board(Object):
 	cell_scale: float = 1
 	cell_size: float = 32
 
+	surface = None
+
 	empty_line: list[str]
 
 	def __init__(self, x: float, y: float, depth: int = 0):
@@ -55,6 +57,8 @@ class Board(Object):
 				idx += 1
 			idx -= 1
 		self.cleared_lines += cleared_lines
+		if cleared_lines > 0:
+			self.update_surface()
 		return cleared_lines
 
 	def merge_tetromino(self, pivot: Position, space: List[List[int]], color: str):
@@ -65,6 +69,7 @@ class Board(Object):
 		if pivot.y == 0:
 			self.is_full = True
 			return
+		self.update_surface()
 
 	def step_begin(self):
 		cell_width = window_get_width() / (self.width + 1)
@@ -77,12 +82,23 @@ class Board(Object):
 
 		self.x = window_get_width() / 2 - board_width / 2
 		self.y = window_get_height() / 2 - board_height / 2
-
-	def draw(self):
+		if self.surface == None:
+			self.surface = surface_create(np.ceil(board_width), np.ceil(board_height))
+			self.update_surface()
+		if self.surface.get_size() != (np.ceil(board_width), np.ceil(board_height)):
+			self.surface = surface_create(np.ceil(board_width), np.ceil(board_height))
+			self.update_surface()
+		
+	def update_surface(self):
+		surface_set_target(self.surface)
 		for i in range(self.width):
 			for j in range(self.height):
-				draw_sprite_ext(self.x + self.cell_size * i - i, self.y + self.cell_size * j - j, 'block_' + self.grid[j][i], 0, self.cell_scale, self.cell_scale)
-	
-	def draw_end(self):
+				draw_sprite_ext(0 + self.cell_size * i - i, 0 + self.cell_size * j - j, 'block_' + self.grid[j][i], 0, self.cell_scale, self.cell_scale)
 		draw_set_color((128, 128, 128))
-		draw_rectangle(self.x, self.y, self.x + self.width * self.cell_size - self.width, self.y + self.height * self.cell_size - self.height, True)
+		draw_rectangle(0, 0, 0 + self.width * self.cell_size - self.width, 0 + self.height * self.cell_size - self.height, True)
+		surface_reset_target()
+
+	def draw(self):
+		draw_surface(self.x, self.y, self.surface)
+	
+		

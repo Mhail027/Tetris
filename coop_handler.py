@@ -167,7 +167,6 @@ class CoopHandler(Object):
 		draw_set_font_align(FontAlignment.LEFT, FontAlignment.TOP)
 		draw_set_color(WHITE)
 		draw_text(16, 16, 'Score: ' + str(int(self.score * 10)))
-		draw_text(16, 400, 'FPS: ' + str(fps_get()))
 
 	def draw_end(self):
 		if self.game_over:

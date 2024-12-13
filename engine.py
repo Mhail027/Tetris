@@ -367,6 +367,9 @@ def draw_text_scaled(x: float, y: float, text: str, xscale: float, yscale: float
 
 	engine.target_surface.blit(text_alpha, (xx, yy))
 
+def draw_surface(x: int, y: int, surface: pygame.Surface):
+	engine.target_surface.blit(surface, (x, y))
+
 def text_get_width(text: str):
 	text_width, text_height = engine.font.size(text)
 	return text_width
@@ -470,7 +473,7 @@ def draw_get_alpha():
 	return engine.alpha / 255
 
 def surface_create(width:int, height: int):
-	return pygame.Surface((width, height))
+	return pygame.Surface((width, height), pygame.SRCALPHA)
 
 def surface_set_target(surf: pygame.Surface):
 	engine.target_surface = surf
