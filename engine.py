@@ -6,7 +6,7 @@ import sys
 from constants import *
 from enum import Enum
 
-from objectt import *
+from object import *
 from sprite import *
 
 pygame.init()

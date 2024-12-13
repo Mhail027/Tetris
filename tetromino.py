@@ -23,7 +23,7 @@ class Tetromino(Object):
 		self.sprite_name = 'block_' + self.color
 	
 	# Rotate to right
-	def rotate(self):
+	def rotate(self, verify_collision: bool = True):
 		old_shape = self.shape
 		transposed_matrix = np.transpose(self.shape).tolist()
 		rotated_matrix_cc = np.fliplr(transposed_matrix).tolist()
@@ -63,7 +63,7 @@ class Tetromino(Object):
 				new_pivot.y = self.board.height - len(self.shape)
 
 
-		if self.check_tetro_collision(new_pivot):
+		if verify_collision & self.check_tetro_collision(new_pivot):
 			self.shape = old_shape
 			return
 		
@@ -87,23 +87,23 @@ class Tetromino(Object):
 								return True
 		return False
 	
-	def move_left(self):
+	def move_left(self, verify_collision: bool = True):
 		new_pivot = Position(self.pivot.x - 1, self.pivot.y)
-		if self.check_tetro_collision(new_pivot):
+		if verify_collision & self.check_tetro_collision(new_pivot):
 			return
 		if self.board.verify_space(new_pivot, self.shape):
 			self.pivot = new_pivot
 
-	def move_right(self):
+	def move_right(self, verify_collision: bool = True):
 		new_pivot = Position(self.pivot.x + 1, self.pivot.y)
-		if self.check_tetro_collision(new_pivot):
+		if verify_collision & self.check_tetro_collision(new_pivot):
 			return
 		if self.board.verify_space(new_pivot, self.shape):
 			self.pivot = new_pivot
 
-	def move_down(self):
+	def move_down(self, verify_collision: bool = True):
 		new_pivot = Position(self.pivot.x, self.pivot.y + 1)
-		if self.check_tetro_collision(new_pivot):
+		if verify_collision & self.check_tetro_collision(new_pivot):
 			return
 		if self.board.verify_space(new_pivot, self.shape):
 			self.pivot = new_pivot

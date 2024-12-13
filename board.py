@@ -1,12 +1,13 @@
 import numpy as np
 from typing import List, Tuple
-from constants import *
+from object import Object
 from engine import *
 from position import Position
 
 class Board(Object):
 	height: int = GRID_HEIGHT
 	width: int = GRID_WIDTH
+	alignment: str
 	grid: list[list[str,...],...] 
 	cleared_lines: int = 0	
 	
@@ -18,8 +19,9 @@ class Board(Object):
 
 	empty_line: list[str]
 
-	def __init__(self, x: float, y: float, depth: int = 0):
+	def __init__(self, x: float, y: float, depth: int = 0, alignment: str = "CENTER"):
 		super().__init__(x, y, depth)
+		self.alignment = alignment
 		self.clear()
 
 	def clear(self):
@@ -72,6 +74,16 @@ class Board(Object):
 		self.update_surface()
 
 	def step_begin(self):
+		if self.alignment == "CENTER":
+			self.step_begin_center()
+		elif self.alignment == "LEFT":
+			self.step_begin_center()
+			self.x = 0 + 220
+		elif self.alignment == "RIGHT":
+			self.step_begin_center()
+			self.x = window_get_width() - self.width - self.cell_size * self.width - 220
+
+	def step_begin_center(self):
 		cell_width = window_get_width() / (self.width + 1)
 		cell_height = window_get_height() / (self.height + 1)
 		self.cell_scale = min(cell_width / 32, cell_height / 32)
@@ -94,6 +106,8 @@ class Board(Object):
 		for i in range(self.width):
 			for j in range(self.height):
 				draw_sprite_ext(0 + self.cell_size * i - i, 0 + self.cell_size * j - j, 'block_' + self.grid[j][i], 0, self.cell_scale, self.cell_scale)
+
+	def draw_end(self):
 		draw_set_color((128, 128, 128))
 		draw_rectangle(0, 0, 0 + self.width * self.cell_size - self.width, 0 + self.height * self.cell_size - self.height, True)
 		surface_reset_target()

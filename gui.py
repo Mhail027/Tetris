@@ -155,7 +155,7 @@ class DuelButton(ImageButton):
 		super().__init__(x, y, depth)
 	
 	def action(self):
-		pass
+		level_load(levels.level_duel_menu)
 
 class CoopButton(ImageButton):
 	sprite_name = 'coop_button'
