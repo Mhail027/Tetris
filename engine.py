@@ -40,7 +40,7 @@ class Engine:
 	fa_horizontal = FontAlignment.CENTER
 	
 	application_surface = pygame.Surface(pygame.display.get_window_size(), pygame.SRCALPHA)
-	
+	target_surface = application_surface	
 	default_color = (255, 255, 255)
 	color = (255, 255, 255)
 	background_color = (0, 0, 0)
@@ -84,7 +84,12 @@ class Engine:
 				waiting_timers.remove(event)
 			if event.type == pygame.VIDEORESIZE:
 				pygame.display.update()
+				target_is_app = False
+				if self.target_surface == self.application_surface:
+					target_is_app = True
 				self.application_surface = pygame.Surface(pygame.display.get_window_size())
+				if target_is_app:
+					self.target_surface = self.application_surface
 
 		# Normally, you would want these events to be in a separate for loop,
 		# but we ball
@@ -245,7 +250,7 @@ def draw_line(x1: float, y1: float, x2: float, y2: float, width: int = 2):
 	line.fill((0, 0, 0, 0))
 	line.set_alpha(engine.alpha)
 	pygame.draw.line(line, engine.color, (width // 2, width // 2), (x2 - x1 + width // 2, y2 - y1 + width // 2), width)
-	engine.application_surface.blit(line, (x1, y1))
+	engine.target_surface.blit(line, (x1, y1))
 
 def draw_rectangle(x1: float, y1: float, x2: float, y2: float, outline: bool = False, owidth: int = 2):
 	width = x2 - x1 + 1
@@ -255,7 +260,7 @@ def draw_rectangle(x1: float, y1: float, x2: float, y2: float, outline: bool = F
 	rect.set_alpha(engine.alpha)
 	if outline == False:
 		pygame.draw.rect(rect, engine.color, pygame.Rect(0, 0, width, height))
-		engine.application_surface.blit(rect, (x1, y1))
+		engine.target_surface.blit(rect, (x1, y1))
 		return
 	ltoff = owidth // 2
 	broff = owidth // 2 + 1
@@ -266,7 +271,7 @@ def draw_rectangle(x1: float, y1: float, x2: float, y2: float, outline: bool = F
 	pygame.draw.line(rect, engine.color, (ltoff, 0), (ltoff, 0 + height), owidth)
 	pygame.draw.line(rect, engine.color, (0 + width - broff, 0), (0 + width - broff, 0 + height), owidth)
 	pygame.draw.line(rect, engine.color, (0, 0 + height - broff), (0 + width, 0 + height - broff), owidth)
-	engine.application_surface.blit(rect, (x1, y1))
+	engine.target_surface.blit(rect, (x1, y1))
 
 def draw_sprite_ext(x: float, y: float, sprite_name: str, angle: float = 0, xscale: float = 1, yscale: float = 1):
 	sprite = sprites[sprite_name]
@@ -287,7 +292,7 @@ def draw_sprite_ext(x: float, y: float, sprite_name: str, angle: float = 0, xsca
 	sprite_alpha.fill((0, 0, 0, 0))
 	sprite_alpha.set_alpha(engine.alpha)
 	sprite_alpha.blit(rotated_sprite, (0, 0))
-	engine.application_surface.blit(sprite_alpha, (x + min_box[0] - rotated_ox, y - max_box[1] + rotated_oy))
+	engine.target_surface.blit(sprite_alpha, (x + min_box[0] - rotated_ox, y - max_box[1] + rotated_oy))
 
 def draw_sprite(x: float, y: float, sprite_name: str):
 	sprite = sprites[sprite_name]
@@ -295,7 +300,7 @@ def draw_sprite(x: float, y: float, sprite_name: str):
 	sprite_alpha.fill((0, 0, 0, 0))
 	sprite_alpha.set_alpha(engine.alpha)
 	sprite_alpha.blit(sprite.texture, (0, 0))
-	engine.application_surface.blit(sprite_alpha, (x - sprite.origin_x, y - sprite.origin_y))
+	engine.target_surface.blit(sprite_alpha, (x - sprite.origin_x, y - sprite.origin_y))
 
 def draw_text(x: float, y: float, text: str):
 	text_width, text_height = engine.font.size(text)
@@ -326,7 +331,7 @@ def draw_text(x: float, y: float, text: str):
 	text_alpha.fill((0, 0, 0, 0))
 	text_alpha.set_alpha(engine.alpha)
 	text_alpha.blit(rendered_text, (0, 0))
-	engine.application_surface.blit(text_alpha, (xx, yy))
+	engine.target_surface.blit(text_alpha, (xx, yy))
 
 def draw_text_scaled(x: float, y: float, text: str, xscale: float, yscale: float):
 	text_width, text_height = engine.font.size(text)
@@ -360,7 +365,7 @@ def draw_text_scaled(x: float, y: float, text: str, xscale: float, yscale: float
 	text_alpha.set_alpha(engine.alpha)
 	text_alpha.blit(rendered_text, (0, 0))
 
-	engine.application_surface.blit(text_alpha, (xx, yy))
+	engine.target_surface.blit(text_alpha, (xx, yy))
 
 def text_get_width(text: str):
 	text_width, text_height = engine.font.size(text)
@@ -463,5 +468,17 @@ def draw_set_alpha(alpha: float):
 
 def draw_get_alpha():
 	return engine.alpha / 255
+
+def surface_create(width:int, height: int):
+	return pygame.Surface((width, height))
+
+def surface_set_target(surf: pygame.Surface):
+	engine.target_surface = surf
+
+def surface_reset_target():
+	engine.target_surface = engine.application_surface
+
+def fps_get():
+	return engine.clock.get_fps()
 
 from levels import *
