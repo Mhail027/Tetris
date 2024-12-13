@@ -1,6 +1,10 @@
 import random
+
+from pygame.examples.midi import null_key
+
 from engine import *
 from board import Board
+from gui import BackButton
 from tetromino import Tetromino
 from position import Position
 
@@ -29,13 +33,13 @@ class DuelHandler(Object):
 		super().__init__(x, y, depth)
 
 		self.p1_game_board = instance_create_depth(0, 0, 1, Board)
-		self.p1_game_board.alignment = "LEFT"
+		self.p1_game_board.alignment = "CENTER_LEFT"
 		self.p1_game_board.width = 7
 		self.p1_game_board.height = 15
 		self.p1_game_board.clear()
 
 		self.p2_game_board = instance_create_depth(0, 0, 1, Board)
-		self.p2_game_board.alignment = "RIGHT"
+		self.p2_game_board.alignment = "CENTER_RIGHT"
 		self.p2_game_board.width = 7
 		self.p2_game_board.height = 15
 		self.p2_game_board.clear()
@@ -154,16 +158,67 @@ class DuelHandler(Object):
 			cleared_lines = board.clear_lines()
 			if cleared_lines > 0:
 				if board == self.p1_game_board:
-					self.send_garbage(self.p2_game_board, cleared_lines - 1)
+					self.send_garbage(self.p2_game_board, cleared_lines - 1, self.get_p2_tetro())
 				else:
-					self.send_garbage(self.p1_game_board, cleared_lines - 1)
+					self.send_garbage(self.p1_game_board, cleared_lines - 1, self.get_p1_tetro())
 
 
 		if any(board.is_full for board in [self.p1_game_board, self.p2_game_board]):
 			self.game_over = True
+			for tetro in instance_get(Tetromino):
+				instance_destroy(tetro)
+			for back_button in instance_get(BackButton):
+				back_button.relative_x = -1
+				if self.p1_game_board.is_full & self.p2_game_board.is_full:
+					back_button.relative_x = 0.5
+					back_button.relative_corner = ('bottom', 'center')
+				elif self.p2_game_board:
+					back_button.x = self.p1_game_board.x + 1.5 * self.p1_game_board.cell_size
+				else:
+					back_button.x = self.p2_game_board.x + 1.5 * self.p2_game_board.cell_size
+
+				back_button.relative_y = 0.8
+				back_button.width = self.p1_game_board.cell_size * 4
+				back_button.height = 100
 
 
 	def draw(self):
+		if self.game_over:
+			draw_set_alpha(0.8)
+			draw_set_color(LTGRAY)
+			ww = self.p1_game_board.width * self.p1_game_board.cell_size - self.p1_game_board.width
+			hh = self.p1_game_board.height * self.p1_game_board.cell_size - self.p1_game_board.height
+			draw_rectangle(self.p1_game_board.x, self.p1_game_board.y, self.p1_game_board.x + ww, self.p1_game_board.y + hh, False)
+			draw_rectangle(self.p2_game_board.x, self.p2_game_board.y, self.p2_game_board.x + ww, self.p2_game_board.y + hh, False)
+
+			if not(self.p1_game_board.is_full & self.p2_game_board.is_full):
+				draw_set_alpha(1)
+				draw_set_color(GREEN)
+				tw = text_get_width('WINNER')
+				th = text_get_height('WINNER')
+				tscale = ww / (tw + 1)
+				draw_set_font_halign(FontAlignment.CENTER)
+				if self.p2_game_board.is_full:
+					draw_text_scaled(self.p1_game_board.x + ww / 2, self.p1_game_board.y + 16 + th * tscale / 2, 'WINNER', tscale, tscale)
+				else:
+					draw_text_scaled(self.p2_game_board.x + ww / 2, self.p2_game_board.y + 16 + th * tscale / 2, 'WINNER', tscale, tscale)
+			else:
+				draw_set_alpha(1)
+				draw_set_color(GRAY)
+				tw = text_get_width('DRAW')
+				th = text_get_height('DRAW')
+				tscale = ww / (tw + 1)
+				draw_set_font_halign(FontAlignment.CENTER)
+				draw_text_scaled(self.p1_game_board.x + ww / 2, self.p1_game_board.y + 16 + th * tscale / 2, 'DRAW', tscale, tscale)
+				draw_text_scaled(self.p2_game_board.x + ww / 2, self.p2_game_board.y + 16 + th * tscale / 2, 'DRAW', tscale, tscale)
+
+
+
+
+	def draw_end(self):
+		if self.game_over:
+			return
+
 		draw_set_color(WHITE)
 
 		draw_text(90, 48, 'Next piece for')
@@ -172,12 +227,26 @@ class DuelHandler(Object):
 		draw_text(window_get_width() - 125, 48, 'Next piece for')
 		draw_text(window_get_width() - 157, 78, self.player2 + ':')
 
-	def draw_end(self):
-		if self.game_over:
-			return
+		next_tetro_shape = SHAPES[self.p2_next_tetro]
+		for j in range(len(next_tetro_shape)):
+			for i in range(len(next_tetro_shape[j])):
+				if next_tetro_shape[j][i] == 0:
+					continue;
+				tlen = len(next_tetro_shape[j]) - 1
+				xx = window_get_width() - 16 - (tlen - i + 1) * self.p2_game_board.cell_size - tlen - i + 1
+				yy = text_get_height('Next piece for' + self.player2 + ':') + 16 + j * self.p2_game_board.cell_size - j
+				next_tetro_sprite = 'block_' + SHAPE_COLOR_STR[self.p2_next_tetro]
+				draw_sprite_ext(xx, yy + 72, next_tetro_sprite, 0, self.p2_game_board.cell_scale, self.p2_game_board.cell_scale)
 
-		self.draw_next_piece(self.p1_next_tetro, 16, 100)
-		self.draw_next_piece(self.p2_next_tetro, window_get_width() - 200, 100)
+		next_tetro_shape = SHAPES[self.p1_next_tetro]
+		for j in range(len(next_tetro_shape)):
+			for i in range(len(next_tetro_shape[j])):
+				if next_tetro_shape[j][i] == 0:
+					continue;
+				next_tetro_sprite = 'block_' + SHAPE_COLOR_STR[self.p1_next_tetro]
+				xx = 16 + i * self.p1_game_board.cell_size - i
+				yy = text_get_height('Next peice for ' + self.player1 + ':') + 16 + j * self.p1_game_board.cell_size - j
+				draw_sprite_ext(xx, yy + 72, next_tetro_sprite, 0, self.p1_game_board.cell_scale, self.p1_game_board.cell_scale)
 
 	def draw_next_piece(self, tetro_type, x, y):
 		next_tetro_shape = SHAPES[tetro_type]
@@ -189,7 +258,7 @@ class DuelHandler(Object):
 					yy = y + j * self.p1_game_board.cell_size
 					draw_sprite_ext(xx, yy, next_tetro_sprite, 0, self.p1_game_board.cell_scale, self.p1_game_board.cell_scale)
 
-	def send_garbage(self, recipient_board: Board, num_lines: int):
+	def send_garbage(self, recipient_board: Board, num_lines: int, curr_tetro: Tetromino):
 		if num_lines == 0:
 			return
 
@@ -200,7 +269,27 @@ class DuelHandler(Object):
 			garbage_row[empty_cell] = 'black'
 			garbage_lines.append(garbage_row)
 
-		if not all(cell == 'black' for cell in recipient_board.grid[num_lines - 1]):
-			self.game_over = True
-		recipient_board.grid = recipient_board.grid[1:recipient_board.height] + garbage_lines
+		recipient_board.grid = recipient_board.grid[num_lines:recipient_board.height] + garbage_lines
+		if curr_tetro != null_key:
+			while not recipient_board.verify_space(curr_tetro.pivot, curr_tetro.shape):
+				curr_tetro.pivot.y -= 1
+				if curr_tetro.pivot.y < 0:
+					break
 		recipient_board.update_surface()
+
+		if not all(cell == 'black' for cell in recipient_board.grid[0]):
+			recipient_board.is_full = True
+
+	def get_p1_tetro(self):
+		active_tetros = instance_get(Tetromino)
+		for tetro in active_tetros:
+			if tetro.owner == self.player1:
+				return tetro
+		return null_key
+
+	def get_p2_tetro(self):
+		active_tetros = instance_get(Tetromino)
+		for tetro in active_tetros:
+			if tetro.owner == self.player2:
+				return tetro
+		return null_key

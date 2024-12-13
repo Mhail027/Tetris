@@ -78,14 +78,11 @@ class Board(Object):
 		self.update_surface()
 
 	def step_begin(self):
-		if self.alignment == "CENTER":
-			self.step_begin_center()
-		elif self.alignment == "LEFT":
-			self.step_begin_center()
-			self.x = 0 + 220
-		elif self.alignment == "RIGHT":
-			self.step_begin_center()
-			self.x = window_get_width() - self.width - self.cell_size * self.width - 220
+		self.step_begin_center()
+		if self.alignment == "CENTER_LEFT":
+			self.x = self.x - window_get_width() / 6 - 5
+		elif self.alignment == "CENTER_RIGHT":
+			self.x = self.x + window_get_width() / 6 - 5
 
 	def step_begin_center(self):
 		cell_width = window_get_width() / (self.width + 1)
