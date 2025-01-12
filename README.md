@@ -14,13 +14,15 @@
 	Acesta prezinta exclusiv elemente de multiplayer (fiind posibil jucarea singleplayer, insa nu este recomandata) si ofera doua modalitati de a va juca:
 	
 	- <strong>Modul Duel</strong>: 2 jucatori vor concura sa supravietuiasca cat mai mult, la fiecare `x` linii completate, adaugandu-se inamicului  `x - 1` linii in plus, astfel ducandu-l cu un pas mai aproape de esec.
+	![](./readme-assets/duel.png)
 	- <strong>Modul Cooperativ</strong>: 2 jucatori se vor coordona pentru a supravietui cat mai mult si pentru a obtine un scor cat mai mare.
+	![](./readme-assets/coop.png)
 
-	In timpul jocului, se poate observa faptul ca completarea mai multor linii simultan va duce la cumularea unui punctaj mai mare decat daca ar fi fost completate una cate una, iar mentinerea butonului `jos` (`S` sau `sageata jos`) va duce, de asemenea, la cresterea scorului, astfel promovand un stil de joc mai agresiv si mai riscant, intrucat cu cat sunt mai multe linii completate, cu atat piesele vor cobori mai repede. 
+	In timpul jocului, se poate observa faptul ca completarea mai multor linii simultan va duce la cumularea unui punctaj mai mare decat daca ar fi fost completate una cate una, iar mentinerea butonului `jos` apasat (`S` sau `sageata jos`) va duce, de asemenea, la cresterea scorului, astfel promovand un stil de joc mai agresiv si mai riscant, intrucat cu cat sunt mai multe linii completate, cu atat piesele vor cobori mai repede. 
 
 1. ### Limbaje / tehnologii folosite
 	
-	Proiectul este realizat in limbajul `python` si se foloseste de biblioteca `pygame` si `numpy` pentru calcule matematice mai complexe.
+	Proiectul este realizat in limbajul `python` si se foloseste de biblioteca `pygame` pentru rendering engine si input / event handler si `numpy` pentru calcule matematice mai complexe. De asemenea, folosim si bibliotecile `os` si `sys` pentru anumite functionalitati specifice sistemului de operare.
 
 1. ### Contributii si dificultati
 
